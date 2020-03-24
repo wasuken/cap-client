@@ -19,7 +19,11 @@ end
 
 def get_capture_and_send(iface)
   cap = Capture.new(:iface=>iface, :start=>true)
+  pkts = []
   cap.stream.each do |pkt|
+    $ws.ping 'living..' do
+      # fires when pong is received
+    end
     if TCPPacket.can_parse?(pkt)
       tcp_packet = TCPPacket.parse(pkt)
       src_mac = EthHeader.str2mac(tcp_packet.eth_src).to_s
@@ -32,7 +36,8 @@ def get_capture_and_send(iface)
       src = {smac: src_mac, sip: src_ip, sport: src_port}
       dst = {dmac: dst_mac, dip: dst_ip, dport: dst_port}
       pkt = {src: src, dst: dst, iface_name: iface, host: Socket.gethostname, content: pkt.force_encoding("ISO-8859-1").encode("UTF-8"), type: "tcp"}
-      send_server(pkt)
+      # send_server(pkt)
+      pkts << pkt
     elsif UDPPacket.can_parse?(pkt)
       udp_packet = UDPPacket.parse(pkt)
       src_mac = EthHeader.str2mac(udp_packet.eth_src).to_s
@@ -45,7 +50,12 @@ def get_capture_and_send(iface)
       src = {smac: src_mac, sip: src_ip, sport: src_port}
       dst = {dmac: dst_mac, dip: dst_ip, dport: dst_port}
       pkt = {src: src, dst: dst, iface_name: iface, host: Socket.gethostname, content: pkt.force_encoding("ISO-8859-1").encode("UTF-8"), type: "udp"}
-      send_server(pkt)
+      # send_server(pkt)
+      pkts << pkt
+    end
+    if pkts.size > 300
+      send_server(pkts)
+      pkts = []
     end
   end
 end
