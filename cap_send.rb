@@ -11,7 +11,7 @@ $ws = nil
 def send_server(p)
   if $opened
     msg = {command: "message",
-           data: p.to_json,
+           data: {data: p.to_json}.to_json,
            identifier: {channel: "CaptureChannel"}.to_json}
     $ws.send(msg.to_json)
   end
@@ -35,9 +35,11 @@ def get_capture_and_send(iface)
       # p "tcp => (#{src_mac} - #{dst_mac}) => (#{src_ip} - #{dst_ip}) => (#{src_port} - #{dst_port})"
       src = {smac: src_mac, sip: src_ip, sport: src_port}
       dst = {dmac: dst_mac, dip: dst_ip, dport: dst_port}
-      pkt = {src: src, dst: dst, iface_name: iface, host: Socket.gethostname, content: pkt.force_encoding("ISO-8859-1").encode("UTF-8"), type: "tcp"}
+      p = {src: src, dst: dst, iface_name: iface, host: Socket.gethostname,
+             content: pkt.force_encoding("ISO-8859-1").encode("UTF-8"),
+             type: "tcp"}
       # send_server(pkt)
-      pkts << pkt
+      pkts << p
     elsif UDPPacket.can_parse?(pkt)
       udp_packet = UDPPacket.parse(pkt)
       src_mac = EthHeader.str2mac(udp_packet.eth_src).to_s
@@ -49,9 +51,11 @@ def get_capture_and_send(iface)
       # p "udp => (#{src_mac} - #{dst_mac}) => (#{src_ip} - #{dst_ip}) => (#{src_port} - #{dst_port})"
       src = {smac: src_mac, sip: src_ip, sport: src_port}
       dst = {dmac: dst_mac, dip: dst_ip, dport: dst_port}
-      pkt = {src: src, dst: dst, iface_name: iface, host: Socket.gethostname, content: pkt.force_encoding("ISO-8859-1").encode("UTF-8"), type: "udp"}
+      p = {src: src, dst: dst, iface_name: iface, host: Socket.gethostname,
+             content: pkt.force_encoding("ISO-8859-1").encode("UTF-8"),
+             type: "udp"}
       # send_server(pkt)
-      pkts << pkt
+      pkts << p
     end
     if pkts.size > 300
       send_server(pkts)
