@@ -4,7 +4,8 @@ require "json"
 require "socket"
 include PacketFu
 
-SERVER_PATH = "ws://localhost:3000/cable/netpackets"
+TOKEN = File.open("token").read.gsub(/\n/, '')
+SERVER_PATH = "ws://localhost:3000/cable/netpackets?token=#{TOKEN}"
 $opened = false
 $ws = nil
 
@@ -71,7 +72,7 @@ threads = []
 
 threads << Thread.new{
   EM.run {
-    $ws = Faye::WebSocket::Client.new('ws://localhost:3000/cable/packets', nil, headers: ["Content-Type: application/json"])
+    $ws = Faye::WebSocket::Client.new(SERVER_PATH, nil)
     $ws.on :open do |event|
       $opened = true
       p [:open]
