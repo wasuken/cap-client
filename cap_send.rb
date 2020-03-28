@@ -11,11 +11,13 @@ $opened = false
 $ws = nil
 
 def send_server(p)
+  p "sending?"
   if $opened
+    p "sending"
     msg = {command: "message",
            data: {data: p.to_json}.to_json,
            identifier: {channel: "CaptureChannel"}.to_json}
-    $ws.send(msg.to_json)
+    p $ws.send(msg.to_json)
   end
 end
 
@@ -62,14 +64,17 @@ def get_capture_and_send(iface)
           pkts << p
         end
       end
+    rescue => e
+      p "failed"
+      p e
+    ensure
+      p " % 100" if pkts.size % 100 == 0
       if pkts.size > 300
+        p "send"
         send_server(pkts)
         pkts = []
       end
     end
-  rescue => e
-    p "failed"
-    p e
   end
 end
 

@@ -1,3 +1,4 @@
 vendor/
 token
 url
+*.out
